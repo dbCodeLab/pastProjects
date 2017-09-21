@@ -1,0 +1,76 @@
+Algoritmo di rendering per colonne con height-casting:
+
+prendi l'altezza della cella del giocatore (cur height <- floor[xp][yp] ecc). Nota: per le 
+altezze si usa solo floor[][], xgrid e ygrid non si usano.
+
+inizializza last_top a vp_bot (il rendering nella colonna avverrà bottom - up) [vp_top, last_top] dal basso.
+
+inizia il ciclo di diffusione del raggio:
+per ogni cella incontrata durante la diffusione del raggio:
+se l'altezza della cella e' uguale a quella corrente avanza il raggio, altrimenti
+se l'altezza e' minore, allora:
+il muro non sarà visibile,la parte alta del piano terminato potrebbe esserlo quindi:
+calcola la proiezione della parte superiore della cella precedente usando l'altezza
+in cur_height
+
+     < il punto sotto al simbolo va proiettato
+      _______
+     |
+-----| (cella precedente)
+^
+| nuova cella di altezza minore della corrente (quella precedente)
+
+se il punto di proiezione bot e' sopra a last_top allora renderizza in [bot..last_top] un
+tratto di cella e aggiorna last_top con bot-1,
+altrimenti se non e' visibile non renderizzare e lascia invariato last_top.
+
+se l'altezza e' maggiore, allora:
+il muro potrebbe essere visibile, la parte alta del piano terminato potrebbe essere visibile:
+
+        
+________ 
+	|B
+	|
+	|< proietto prima il punto sotto al simbolo, poi 
+	|__________
+	|A
+________|__________
+
+Proietto il punto A e come nel caso precedente verifico se e' visibile una porzione del piano
+superiore del muro inferiore, in caso affermativo renderizzo e aggiorno last_top, altrimenti
+considero comunque la proiezione del punto A, poi calcolo l'altezza del tratto A-B (len B-A,
+differenze di altezza tra la cella corrente e quella precedente), calcolo quindi la proiezione
+di B sul pp: se tale punto e' visibile allora renderizzo da last_top fino a quel punto e aggiorno
+last_top con valore del punto (top del muro praticamente), altrimenti lascio invariato last_top.
+
+Poi si aggiorna cur height con l'altezza della cella corrente.
+
+
+
+Quindi riassumendo: si diffonde il raggio fintanto che l'altezza della cella corrente rimane
+uguale a quella corrente, quando cambia si possono presentare 2 casi:
+
+-diminuisce: in tal caso il muro non sarà visibile, mentre la parte superiore della cella
+precedente potrebbe esserlo, quindi si proietta il punto in alto della cella precedente e 
+si clippa rispetto al valore di last_top, eventualmente si renderizza e si aggiorna last_top
+
+-aumenta: in tal caso il muro potrebbe essere visibile, oltre alla parte superiroe della cella
+precedente:  si proiettano sia il punto della cella precedente (base del muro visibile), 
+sia il muro, si presentano 3 casi:
+
+-la parte superiore della cella e' visibile, e anche il muro lo è di conseguenza: allora si 
+renderizzano entrambe e poi si aggiorna last_top con il punto in alto di proiezione del muro
+(quindi last_top->bot->top)
+
+-la parte superiore della cella non e' visibile (si clippa rispetto a last_top) però il muro
+è visibile: allora si renderizza solo il tratto di muro (da last_top->top)
+
+-ne la parte superiore della cella, ne il muro sono visibili (risultano clippate rispetto a 
+last_top)
+
+
+
+In generale il rendering e' bottom-up per colonne, il segmento da renderizzare e' [vp_top, last_top] dal basso. Quando si renderizza un muro si usa la solita tecnica di wall casting, 
+quando si deve renderizzare una parte superiore si usa la tecnica del floor casting.
+
+

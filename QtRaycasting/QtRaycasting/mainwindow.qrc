@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/MainWindow"/>
+    <qresource prefix="/">
+        <file>textures/Brick4.bmp</file>
+        <file>textures/Brick4a.bmp</file>
+        <file>textures/Stone3.bmp</file>
+        <file>textures/Stone3a.bmp</file>
+        <file>textures/Brick1.bmp</file>
+        <file>textures/Brick1a.bmp</file>
+        <file>textures/Brick6.bmp</file>
+        <file>textures/Brick6a.bmp</file>
+        <file>textures/diamond.bmp</file>
+        <file>textures/hexgrey.bmp</file>
+    </qresource>
+</RCC>

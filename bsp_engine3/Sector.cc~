@@ -1,0 +1,11 @@
+#include "Sector.h"
+/*
+void Sector::compute_max_ceiling_height() {
+  Wall *w = wall_list;
+  start_ceiling_height = 10000;
+  while (w) {
+    if (w->type == Wall::DOOR && w->sectors[Wall::REAR]->ceiling_height < start_ceiling_height)
+      start_ceiling_height = w->sectors[Wall::REAR]->ceiling_height;
+    w = w->next_front_in_sec;
+  }
+}*/

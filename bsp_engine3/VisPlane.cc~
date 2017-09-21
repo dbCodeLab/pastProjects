@@ -1,0 +1,16 @@
+#include "VisPlane.h"
+
+int VisPlane::n_spans = 0;
+VisPlane::VisPlaneSpans *VisPlane::vis_planes_free_list = 0;
+VisPlane::VisPlaneSpans *VisPlane::vis_planes_used_list = 0;
+
+VisPlane::VisPlane(Sector *vis_plane_sector, VisPlane *vis_plane_next)
+: owner(vis_plane_sector), next(vis_plane_next)
+{ 
+//   cout << "ciao0" << endl;
+  xmin = 100000;
+  xmax = -1;
+  ymin = 100000;
+  ymax = -1;
+  visplane_spans = get_new_vis_plane_spans_mem();
+}

@@ -1,0 +1,45 @@
+LD=g++
+LDFLAGS=-lX11 -lXt -lXext -lXmu -lm -O3
+CPPFLAGS=-O3
+# -funroll-loops
+# -fprofile-arcs -ftest-coverage
+
+main: main.o XApplication.o XScreenRgbInfo.o XEngine.o XRasterizer.o XTextureLoaderPPM.o \
+      Plane.o BspTree.o VertexSet.o Texture.o
+	$(LD) $^ -o $@ $(LDFLAGS)
+
+main.o: main.cc
+	$(LD) -c $^ $(CPPFLAGS)
+
+XApplication.o: XApplication.cc
+	$(LD) -c $^ $(LDFLAGS) $(CPPFLAGS) -DSHM_EXT
+
+# metti -DSHM_EXT nelle opzioni di compilazione di Xapp per usare l'shm
+
+XScreenRgbInfo.o: XScreenRgbInfo.cc
+	$(LD) -c $^ $(LDFLAGS) $(CPPFLAGS)
+
+XEngine.o: XEngine.cc
+	$(LD) -c $^ $(CPPFLAGS)
+
+XRasterizer.o: XRasterizer.cc
+	$(LD) -c $^ $(CPPFLAGS)
+
+XTextureLoaderPPM.o: XTextureLoaderPPM.cc
+	$(LD) -c $^ $(CPPFLAGS)
+
+Plane.o: Plane.cc
+	$(LD) -c $^ $(CPPFLAGS)
+
+BspTree.o: BspTree.cc
+	$(LD) -c $^ $(CPPFLAGS)
+
+VertexSet.o: VertexSet.cc
+	$(LD) -c $^ $(CPPFLAGS)
+
+Texture.o: Texture.cc
+	$(LD) -c $^ $(CPPFLAGS)
+
+clean:
+	rm main main.o XApplication.o XScreenRgbInfo.o XEngine.o XRasterizer.o \
+	   XTextureLoaderPPM.o Plane.o BspTree.o VertexSet.o Texture.o

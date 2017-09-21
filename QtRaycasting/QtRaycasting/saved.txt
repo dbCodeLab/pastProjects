@@ -1,0 +1,719 @@
+void Raycaster::render()
+{
+
+	int width = buffer.width();
+	int height = buffer.height();
+	realType playerAngle = player->getAngle();
+	realType playerHeight = player->getHeight();
+
+	// player real position on map
+	realType px = player->getX() / WALL_HEIGHT;
+	realType py = player->getY() / WALL_HEIGHT;
+
+	for (int col = 0; col != width; ++col) {
+
+		realType columnAngle = atan2(col - width/2, hpc);
+		realType rayAngle = playerAngle + columnAngle;
+		realType cosRayAngle = cos(rayAngle);
+		realType sinRayAngle = sin(rayAngle);
+		realType invCosRayAngle = abs(1 / cosRayAngle);
+		realType invSinRayAngle = abs(1 / sinRayAngle);
+
+
+		// distance from first intersection points
+		realType xdist, ydist;
+
+		// distance increments
+		realType xDistInc = invCosRayAngle;
+		realType yDistInc = invSinRayAngle;
+
+		// player integer position on grid
+		int posx = static_cast<int>(px);
+		int posy = static_cast<int>(py);
+
+		// steps on grid
+		int stepx, stepy;
+	
+		if (cosRayAngle>=0) {
+			xdist = (posx + 1 - px) * invCosRayAngle;
+			stepx = 1;
+		}
+		else {
+			xdist = (px - posx) * invCosRayAngle;
+			stepx = -1;		
+		}
+		
+		if (sinRayAngle >= 0) {
+			ydist = (posy + 1 - py) * invSinRayAngle;
+			stepy = 1;		
+		}
+		else {
+			ydist = (py - posy) * invSinRayAngle;
+			stepy = -1;	
+		}
+
+		
+		int wallColIdx;
+		realType hitDist;
+		realType texOfs;
+		int cellCode = 0;
+		bool dark = false;
+
+		while (!cellCode) {
+			if (xdist < ydist) {
+				// vertical intersection (constant x line)
+
+				hitDist = xdist;
+				xdist += xDistInc;
+				posx += stepx;     
+
+				cellCode = map->getCellCode(posy, posx);
+				if (cellCode) {
+					realType ofs;
+					// find y of intersection point on map
+					if (stepx > 0) {
+						// from, playery + deltaY, where deltaY is computed as dy/dx * deltaX
+						// Note: the sign of dy/dx tells us the right sign of deltaY
+						ofs = py + sinRayAngle * (posx - px) / cosRayAngle;
+						// now we find the right texture offset in [0,1]
+						texOfs = ofs - floor(ofs);
+					}
+					else {
+						// as before but, to obtain the right value for deltaY (+ toward right, - toward left) we use a slightly different 
+						// expression for deltaX. Note: the sign of (posx + 1 - px) is < 0 to invert dy/dx sign
+						ofs = py + sinRayAngle * (posx + 1 - px) / cosRayAngle;
+						// now we find the right texture offset in [0,1]
+						texOfs = ceil(ofs) - ofs;
+					}
+					
+				}
+			}
+			else {
+				// horizontal intersection (constant y line)
+
+				hitDist = ydist;
+				ydist += yDistInc;
+				posy += stepy;
+
+				cellCode = map->getCellCode(posy, posx);
+				if (cellCode) {
+					dark = true;
+					realType ofs;
+					// find x of intersection point on map
+					if (stepy > 0) {
+						// from, playerx + deltaX, where deltaX is computed as dx/dy * deltaY
+						// Note: the sign of dx/dy tells us the right sign of deltaX
+						ofs = px + cosRayAngle * (posy - py) / sinRayAngle;
+						// now we find the right texture offset in [0,1]
+						texOfs = ceil(ofs) - ofs;
+					}
+					else {
+						// as before but, to obtain the right value for deltaX (+ toward right, - toward left) we use a slightly different 
+						// expression for deltaY. Note: the sign of (posy + 1 - py) is < 0 to invert dx/dy sign
+						ofs = px + cosRayAngle * (posy + 1 - py) / sinRayAngle;
+						// now we find the right texture offset in [0,1]
+						texOfs = ofs - floor(ofs);
+					}
+
+				}
+
+			}
+		}
+
+		float correctedDist = hitDist * cos(columnAngle) * WALL_HEIGHT;		
+		int sliceHeight = persComp * WALL_HEIGHT / correctedDist;
+		int sliceBot = ppy + persComp * playerHeight / correctedDist;
+		//int sliceTop = sliceBot - sliceHeight + 1;
+		int sliceTop = ppy + persComp * (playerHeight - WALL_HEIGHT) / correctedDist;
+		float sliceTexInc = (1.0 * WALL_HEIGHT) / sliceHeight;
+		float sliceTexOfs = 0;
+
+		if (sliceTop < 0) {
+			sliceTexOfs += -sliceTop * sliceTexInc;
+			sliceTop = 0;
+		}
+		
+		if (sliceBot >= height) {
+			sliceBot = height - 1;
+		}		
+
+		wallSlices[col].dist = correctedDist;
+		wallSlices[col].top = sliceTop;
+		wallSlices[col].bot = sliceBot;
+		wallSlices[col].dark = dark;
+		wallSlices[col].tex = cellCode;
+		wallSlices[col].texInc = sliceTexInc;
+		wallSlices[col].texOfs = sliceTexOfs;
+	}
+
+	renderWallSlices();
+
+	QWidget::update(); // qt update
+}
+
+
+
+** 
+			FixedPoint<16> vofsfix(vofs);
+			FixedPoint<16> incfix(inc);
+			FixedPoint<16> err;
+			FixedPoint<16> one(1.0);
+
+			int ofs = vofsfix.getInt();
+			err = vofsfix - FixedPoint<16>(ofs);
+			for (; true; ) {
+				
+				QRgb value = *(texel + ofs);
+				while (err.getValue() < one.getValue()) {
+					*pixel = value;
+					pixel += stride;
+					if (pixel >= finish) goto exitloop;
+					err += incfix;
+				}
+				++ofs;
+				err = err - one;
+				//*pixel = *(texel + ofs);
+				//vofsfix += incfix;
+			}
+			exitloop:
+
+
+***********************************************
+
+	struct WallSlice {
+		QRgb *texSlicePtr;
+		FixedPoint<16> texVofsFix;
+		FixedPoint<16> texIncFix;
+
+		
+		int top;
+		int bot;
+		int col;
+		int tex;	
+		realType texHofs;
+		realType texVofs;
+		realType texInc;
+
+		realType dist;
+		WallSlice *next;
+	};
+
+	struct Texture {
+		QImage tex;
+		QRgb *base;
+		WallSlice *firstSlice;
+		WallSlice **pslice = &firstSlice;
+	};
+
+
+	void Raycaster::renderWallsByTextureIndexed8() {
+
+	const uchar *ptr = buffer.bits();
+	QRgb *start = (QRgb*)(ptr);
+	int stride = buffer.bytesPerLine() / 4;
+	QRgb *texPalette = palette;
+
+	for (int texId = 0; texId != numWallTextures; ++texId) {
+		// end i texture list
+		*wallTextures[texId].pslice = nullptr;
+
+		// render all walls with texture texId
+		const uchar *texsrc = wallTextures[texId].tex.bits();
+		int texHeight = wallTextures[texId].tex.height(); // number of cols in rotated texture
+		int texWidth = wallTextures[texId].tex.width();  // number of rows in rotated texture
+		int texStride = wallTextures[texId].tex.bytesPerLine();
+		//const QVector<QRgb> colorTable = textures[texId].tex.colorTable();
+		
+		WallSlice *wallSlice = wallTextures[texId].firstSlice;
+		while (wallSlice) {
+
+			int row = static_cast<int>(wallSlice->texHofs * texHeight);
+			realType vofs = wallSlice->texVofs * texWidth;
+			realType inc = wallSlice->texInc * texWidth;
+
+			QRgb *pixel = start + wallSlice->col + wallSlice->top * stride;
+			QRgb *finish = start + wallSlice->col + (wallSlice->bot + 1) * stride;
+			const uchar *texel = texsrc + row * texStride;
+
+			///*
+			for (; pixel != finish; pixel += stride) {
+				int ofs = vofs;
+				uchar index = *(texel + ofs);
+				QRgb color = texPalette[index]; //colorTable[index];
+				*pixel = color;
+				vofs += inc;
+			}
+			//*/
+
+			/* 
+			FixedPoint<16> vofsfix(vofs);
+			FixedPoint<16> incfix(inc);
+
+			for (; pixel != finish; pixel += stride) {
+				int ofs = vofsfix.getInt();
+				uchar index = *(texel + ofs);
+				QRgb color = palette[index];
+				*pixel = color;
+				vofsfix += incfix;
+			}
+			*/
+
+
+			wallSlice = wallSlice->next;
+		}
+
+		// reset pointer to first pointer
+		wallTextures[texId].pslice = &wallTextures[texId].firstSlice;
+	}
+
+}
+
+void Raycaster::renderWallsByTextureARGB32() {
+
+	const uchar *ptr = buffer.bits();
+	QRgb *start = (QRgb*)(ptr);
+	int stride = buffer.bytesPerLine() / 4;
+
+	for (int texId = 0; texId != numWallTextures; ++texId) {
+		// end i texture list
+		*wallTextures[texId].pslice = nullptr;
+
+		// render all walls with texture texId
+		const uchar *src = wallTextures[texId].tex.bits();
+		const QRgb *texsrc = reinterpret_cast<const QRgb*>(src);
+		int texHeight = wallTextures[texId].tex.height(); // number of cols in rotated texture
+		int texWidth = wallTextures[texId].tex.width();  // number of rows in rotated texture
+		int texStride = wallTextures[texId].tex.bytesPerLine() / 4;
+		
+		WallSlice *wallSlice = wallTextures[texId].firstSlice;
+		while (wallSlice) {
+			
+			int row = static_cast<int>(wallSlice->texHofs * texHeight);
+			realType vofs = wallSlice->texVofs * texWidth;
+			realType inc = wallSlice->texInc * texWidth;
+
+			QRgb *pixel = start + wallSlice->col + wallSlice->top * stride;
+			QRgb *finish = start + wallSlice->col + (wallSlice->bot + 1) * stride;
+			const QRgb *texel = texsrc + row * texStride;
+	
+			///*
+			for (; pixel != finish; pixel += stride) {
+				int ofs = (int)vofs;
+				*pixel = *(texel + ofs);
+				vofs += inc;
+			}
+			//*/
+
+			/*
+			FixedPoint<16> vofsfix(vofs);
+			FixedPoint<16> incfix(inc);
+			
+			for (; pixel != finish; pixel += stride) {
+				int ofs = vofsfix.getInt();
+				*pixel = *(texel + ofs);
+				vofsfix += incfix;
+			}
+			*/
+
+
+			wallSlice = wallSlice->next;
+		}
+
+		// reset pointer to first pointer
+		wallTextures[texId].pslice = &wallTextures[texId].firstSlice;
+	}
+
+}
+
+
+void Raycaster::rayCasting2() {
+
+	int width = buffer.width();
+	int height = buffer.height();
+
+	realType playerAngle = player.angle;
+	realType playerHeight = player.height;
+
+	pAngleSin = player.sinAngle;//sin(playerAngle);
+	pAngleCos = player.cosAngle;//cos(playerAngle);
+	
+	// player real position on map
+	realType px = player.x / WALL_HEIGHT;
+	realType py = player.y / WALL_HEIGHT;
+
+	for (int col = 0; col != width; ++col) {
+
+		realType colAngleSin = colTrigValues[col].sin;
+		realType colAngleCos = colTrigValues[col].cos;
+
+		realType sinRayAngle = pAngleSin * colAngleCos + pAngleCos * colAngleSin;
+		realType cosRayAngle = pAngleCos * colAngleCos - pAngleSin * colAngleSin;
+
+		realType invSinRayAngle = abs(1 / sinRayAngle);
+		realType invCosRayAngle = abs(1 / cosRayAngle);
+
+		// distance from first intersection points
+		realType xdist, ydist;
+
+		// distance increments
+		realType xDistInc = invCosRayAngle;
+		realType yDistInc = invSinRayAngle;
+
+		// player integer position on grid
+		int posx = static_cast<int>(px);
+		int posy = static_cast<int>(py);
+
+		// steps on grid
+		int stepx, stepy;
+		// row offset on gridmap (used to avoid imul when accessing the cellmap)
+		int cellmapStepy;
+
+		if (cosRayAngle >= 0) {
+			xdist = (posx + 1 - px) * invCosRayAngle;
+			stepx = 1;
+		}
+		else {
+			xdist = (px - posx) * invCosRayAngle;
+			stepx = -1;
+		}
+
+		if (sinRayAngle >= 0) {
+			ydist = (posy + 1 - py) * invSinRayAngle;
+			stepy = 1;
+			cellmapStepy = cellMapCols;
+		}
+		else {
+			ydist = (py - posy) * invSinRayAngle;
+			stepy = -1;
+			cellmapStepy = -cellMapCols;
+		}
+
+
+		int wallColIdx;
+		realType hitDist;
+		realType texOfs; // in [0,1]
+		int cellCode = 0;
+		bool darkTex = false;
+		int cellmapRowOffset = posy * cellMapCols;
+
+		while (cellCode>=0) {
+			if (xdist < ydist) {
+				// vertical intersection (constant x line)
+
+				hitDist = xdist;
+				xdist += xDistInc;
+				posx += stepx;
+
+				cellCode = cells[cellmapRowOffset + posx].code;//cells[posy * cellMapCols + posx].code;
+				if (cellCode<0) {
+					realType ofs;
+					// find y of intersection point on map
+					if (stepx > 0) {
+						// from, playery + deltaY, where deltaY is computed as dy/dx * deltaX
+						// Note: the sign of dy/dx tells us the right sign of deltaY
+						ofs = py + sinRayAngle / cosRayAngle * (posx - px);
+						// now we find the right texture offset in [0,1]
+						texOfs = ofs - floor(ofs);
+					}
+					else {
+						// as before but, to obtain the right value for deltaY (+ toward right, - toward left) we use a slightly different 
+						// expression for deltaX. Note: the sign of (posx + 1 - px) is < 0 to invert dy/dx sign
+						ofs = py + sinRayAngle / cosRayAngle * (posx + 1 - px);
+						// now we find the right texture offset in [0,1]
+						texOfs = ceil(ofs) - ofs;
+					}
+
+				}
+			}
+			else {
+				// horizontal intersection (constant y line)
+
+				hitDist = ydist;
+				ydist += yDistInc;
+				posy += stepy;
+				cellmapRowOffset += cellmapStepy;
+
+				cellCode = cells[cellmapRowOffset + posx].code;
+				if (cellCode<0) {
+					darkTex = true;
+					realType ofs;
+					// find x of intersection point on map
+					if (stepy > 0) {
+						// from, playerx + deltaX, where deltaX is computed as dx/dy * deltaY
+						// Note: the sign of dx/dy tells us the right sign of deltaX
+						ofs = px + cosRayAngle / sinRayAngle * (posy - py);
+						// now we find the right texture offset in [0,1]
+						texOfs = ceil(ofs) - ofs;
+					}
+					else {
+						// as before but, to obtain the right value for deltaX (+ toward right, - toward left) we use a slightly different 
+						// expression for deltaY. Note: the sign of (posy + 1 - py) is < 0 to invert dx/dy sign
+						ofs = px + cosRayAngle / sinRayAngle * (posy + 1 - py);
+						// now we find the right texture offset in [0,1]
+						texOfs = ofs - floor(ofs);
+					}
+
+				}
+
+			}
+		}
+
+		//float fisheyefactorFF = cos(columnAngle);
+		realType fisheyefactor = colAngleCos;
+		realType correctedDist = hitDist * fisheyefactor * WALL_HEIGHT;
+		//int sliceHeight = persComp * WALL_HEIGHT / correctedDist;
+		int sliceBot = ppy + persComp * playerHeight / correctedDist;
+		//int sliceTop = sliceBot - sliceHeight + 1;
+		int sliceTop = ppy + persComp * (playerHeight - WALL_HEIGHT) / correctedDist;
+		realType sliceTexInc = (1.0) / (sliceBot - sliceTop + 1); // in [0,1] or multiply by // * texture height) later
+		realType sliceTexOfs = 0;
+
+		if (sliceTop < 0) {
+			sliceTexOfs = -sliceTop * sliceTexInc;
+			sliceTop = 0;
+		}
+
+		if (sliceBot >= height) {
+			sliceBot = height - 1;
+		}
+
+		int texId = -cellCode - !darkTex;
+		wallSlices[col].col = col;
+		wallSlices[col].dist = correctedDist;
+		wallSlices[col].top = sliceTop;
+		wallSlices[col].bot = sliceBot;
+		wallSlices[col].tex = texId;
+		wallSlices[col].texHofs = texOfs;
+		wallSlices[col].texInc = sliceTexInc;
+		wallSlices[col].texVofs = sliceTexOfs;
+
+
+
+		*wallTextures[texId].pslice = &wallSlices[col];
+		wallTextures[texId].pslice = &wallSlices[col].next;
+		//wallSlices[col].next = nullptr;
+
+	}
+
+}
+
+
+void Raycaster::rayCasting() {
+
+	int width = buffer.width();
+	int height = buffer.height();
+	realType playerAngle = player.angle;
+	realType playerHeight = player.height;
+
+	pAngleSin = sin(playerAngle);
+	pAngleCos = cos(playerAngle);
+
+	// player real position on map
+	realType px = player.x / WALL_HEIGHT;
+	realType py = player.y / WALL_HEIGHT;
+
+
+	for (int col = 0; col != width; ++col) {
+
+		realType columnAngle = atan2(col - width / 2, hpc);
+		realType rayAngle = playerAngle + columnAngle;
+		realType cosRayAngle = cos(rayAngle);
+		realType sinRayAngle = sin(rayAngle);
+		realType invCosRayAngle = abs(1 / cosRayAngle);
+		realType invSinRayAngle = abs(1 / sinRayAngle);
+
+
+		// distance from first intersection points
+		realType xdist, ydist;
+
+		// distance increments
+		realType xDistInc = invCosRayAngle;
+		realType yDistInc = invSinRayAngle;
+
+		// player integer position on grid
+		int posx = static_cast<int>(px);
+		int posy = static_cast<int>(py);
+
+		// steps on grid
+		int stepx, stepy;
+
+		if (cosRayAngle >= 0) {
+			xdist = (posx + 1 - px) * invCosRayAngle;
+			stepx = 1;
+		}
+		else {
+			xdist = (px - posx) * invCosRayAngle;
+			stepx = -1;
+		}
+
+		if (sinRayAngle >= 0) {
+			ydist = (posy + 1 - py) * invSinRayAngle;
+			stepy = 1;
+		}
+		else {
+			ydist = (py - posy) * invSinRayAngle;
+			stepy = -1;
+		}
+
+
+		int wallColIdx;
+		realType hitDist;
+		realType texOfs; // in [0,1]
+		int cellCode = 0;
+		bool darkTex = false;
+
+		while (cellCode>=0) {
+			if (xdist < ydist) {
+				// vertical intersection (constant x line)
+
+				hitDist = xdist;
+				xdist += xDistInc;
+				posx += stepx;
+
+				cellCode = cells[posy * cellMapCols + posx].code;
+				if (cellCode<0) {
+					realType ofs;
+					// find y of intersection point on map
+					if (stepx > 0) {
+						// from, playery + deltaY, where deltaY is computed as dy/dx * deltaX
+						// Note: the sign of dy/dx tells us the right sign of deltaY
+						ofs = py + sinRayAngle * (posx - px) / cosRayAngle;
+						// now we find the right texture offset in [0,1]
+						texOfs = ofs - floor(ofs);
+					}
+					else {
+						// as before but, to obtain the right value for deltaY (+ toward right, - toward left) we use a slightly different 
+						// expression for deltaX. Note: the sign of (posx + 1 - px) is < 0 to invert dy/dx sign
+						ofs = py + sinRayAngle * (posx + 1 - px) / cosRayAngle;
+						// now we find the right texture offset in [0,1]
+						texOfs = ceil(ofs) - ofs;
+					}
+
+				}
+			}
+			else {
+				// horizontal intersection (constant y line)
+
+				hitDist = ydist;
+				ydist += yDistInc;
+				posy += stepy;
+
+				cellCode = cells[posy * cellMapCols + posx].code;
+				if (cellCode<0) {
+					darkTex = true;
+					realType ofs;
+					// find x of intersection point on map
+					if (stepy > 0) {
+						// from, playerx + deltaX, where deltaX is computed as dx/dy * deltaY
+						// Note: the sign of dx/dy tells us the right sign of deltaX
+						ofs = px + cosRayAngle * (posy - py) / sinRayAngle;
+						// now we find the right texture offset in [0,1]
+						texOfs = ceil(ofs) - ofs;
+					}
+					else {
+						// as before but, to obtain the right value for deltaX (+ toward right, - toward left) we use a slightly different 
+						// expression for deltaY. Note: the sign of (posy + 1 - py) is < 0 to invert dx/dy sign
+						ofs = px + cosRayAngle * (posy + 1 - py) / sinRayAngle;
+						// now we find the right texture offset in [0,1]
+						texOfs = ofs - floor(ofs);
+					}
+
+				}
+
+			}
+		}
+
+		realType fisheyefactor = cos(columnAngle);
+		realType correctedDist = hitDist * fisheyefactor * WALL_HEIGHT;
+		//int sliceHeight = persComp * WALL_HEIGHT / correctedDist;
+		int sliceBot = ppy + persComp * playerHeight / correctedDist;
+		//int sliceTop = sliceBot - sliceHeight + 1;
+		int sliceTop = ppy + persComp * (playerHeight - WALL_HEIGHT) / correctedDist;
+		realType sliceTexInc = (1.0) / (sliceBot - sliceTop + 1); // in [0,1] or multiply by //* WALL_HEIGHT (-> * texture height) later
+		realType sliceTexOfs = 0;
+
+		if (sliceTop < 0) {
+			sliceTexOfs = -sliceTop * sliceTexInc;
+			sliceTop = 0;
+		}
+
+		if (sliceBot >= height) {
+			sliceBot = height - 1;
+		}
+
+		int texId = -cellCode - !darkTex;
+		wallSlices[col].col = col;
+		wallSlices[col].dist = correctedDist;
+		wallSlices[col].top = sliceTop;
+		wallSlices[col].bot = sliceBot;
+		wallSlices[col].tex = texId;
+		wallSlices[col].texHofs = texOfs;
+		wallSlices[col].texInc = sliceTexInc;
+		wallSlices[col].texVofs = sliceTexOfs;
+
+		
+	}
+
+}
+
+
+
+void Raycaster::loadTexturesIndexed8()
+{
+	QTransform mscale, mrot;
+	mrot.rotate(-90);
+	mscale.scale(-1, 1);
+	// 
+	numWallTextures = 8;
+	wallTextures = new Texture[numWallTextures];
+
+	QImage tmp;
+	tmp.load(":/textures/Brick4.bmp");
+	wallTextures[0].tex = tmp.transformed(mscale).transformed(mrot);
+	QVector<QRgb> colorTable = wallTextures[0].tex.colorTable();
+	//colorTable.setSharable(true);
+
+	tmp.load(":/textures/Brick4a.bmp");
+	wallTextures[1].tex = tmp.transformed(mscale).transformed(mrot);
+	//textures[1].tex.setColorTable(colorTable);
+
+	tmp.load(":/textures/Stone3.bmp");
+	wallTextures[2].tex = tmp.transformed(mscale).transformed(mrot);
+	//textures[2].tex.setColorTable(colorTable);
+
+	tmp.load(":/textures/Stone3a.bmp");
+	wallTextures[3].tex = tmp.transformed(mscale).transformed(mrot);
+	//textures[3].tex.setColorTable(colorTable);
+
+	tmp.load(":/textures/Brick1.bmp");
+	wallTextures[4].tex = tmp.transformed(mscale).transformed(mrot);
+	//textures[4].tex.setColorTable(colorTable);
+
+	tmp.load(":/textures/Brick1a.bmp");
+	wallTextures[5].tex = tmp.transformed(mscale).transformed(mrot);
+	//textures[5].tex.setColorTable(colorTable);
+
+	tmp.load(":/textures/Brick6.bmp");
+	wallTextures[6].tex = tmp.transformed(mscale).transformed(mrot);
+	//textures[6].tex.setColorTable(colorTable);
+
+	tmp.load(":/textures/Brick6a.bmp");
+	wallTextures[7].tex = tmp.transformed(mscale).transformed(mrot);
+	//textures[7].tex.setColorTable(colorTable);
+
+	
+	numFloorTextures = 2;
+	floorTextures = new Texture[numFloorTextures];
+
+	tmp.load(":/textures/diamond.bmp");
+	floorTextures[0].tex = tmp.transformed(mscale).transformed(mrot);
+	tmp.load(":/textures/hexgrey.bmp");
+	floorTextures[1].tex = tmp.transformed(mscale).transformed(mrot);
+	
+	palette = new QRgb[256];
+
+	for (size_t i = 0; i != 256; ++i) {
+		palette[i] = colorTable[i];
+	}
+	
+}

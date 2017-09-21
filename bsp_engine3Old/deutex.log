@@ -1,0 +1,6 @@
+i AA00 DeuTex 4.4.902
+i AA05 argv[1] "-xtract"
+i AA05 argv[2] "wallytex.wad"
+i EX00 Extracting entries from wad wallytex.wad
+i WR19 Reading WAD /usr/share/games/doom/doom1.wad:	(1264 entries)
+E WR03 wallytex.wad: No such file or directory

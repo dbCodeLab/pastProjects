@@ -1,0 +1,30 @@
+LD=g++
+LDFLAGS=-lX11 -lXt -lXext -lXmu -lm -O3
+CPPFLAGS=-O3
+# -funroll-loops
+
+main: main.o XApplication.o XScreenRgbInfo.o XEngine.o XRasterizer.o XTextureLoaderPPM.o
+	$(LD) $^ -o $@ $(LDFLAGS)
+
+main.o: main.cc
+	$(LD) -c $^ $(CPPFLAGS)
+
+XApplication.o: XApplication.cc
+	$(LD) -c $^ $(LDFLAGS) $(CPPFLAGS)
+
+# metti -DSHM_EXT nelle opzioni di compilazione di Xapp per usare l'shm
+
+XScreenRgbInfo.o: XScreenRgbInfo.cc
+	$(LD) -c $^ $(LDFLAGS) $(CPPFLAGS)
+
+XEngine.o: XEngine.cc
+	$(LD) -c $^ $(CPPFLAGS)
+
+XRasterizer.o: XRasterizer.cc
+	$(LD) -c $^ $(CPPFLAGS)
+
+XTextureLoaderPPM.o: XTextureLoaderPPM.cc
+	$(LD) -c $^ $(CPPFLAGS)
+
+clean:
+	rm main main.o XApplication.o XScreenRgbInfo.o XEngine.o XRasterizer.o XTextureLoaderPPM.o

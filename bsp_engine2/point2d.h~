@@ -1,0 +1,9 @@
+#ifndef POINT_2D_H
+#define POINT_2D_H
+
+class Point2d {
+public:
+  int x, y;
+};
+
+#endif
