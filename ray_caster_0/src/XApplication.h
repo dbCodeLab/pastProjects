@@ -7,14 +7,16 @@
 #include <X11/Intrinsic.h>
 #include <X11/extensions/XShm.h>
 
-#include "XScreenRgbInfo.h"
-#include "XEngine.h"
+#include "../src/XEngine.h"
+#include "../src/XScreenRgbInfo.h"
 
 using std::string;
 
 #define COLOR_DEPTH 24
 #define START_X 0
 #define START_Y 0
+
+//#define SHM_EXT
 
 // Applicazione a singola finestra.
 class XApplication
@@ -59,10 +61,11 @@ private:
 	void free_ximg();
 
 #ifdef SHM_EXT
-    XShmSegmentInfo shminfo;
-    void init_shm_ximg();
-    void free_shm_ximg();
-    #endif
+	XShmSegmentInfo shminfo;
+	void init_shm_ximg();
+	void free_shm_ximg();
+#endif
+
 };
 
 #endif

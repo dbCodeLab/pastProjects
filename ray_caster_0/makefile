@@ -1,7 +1,7 @@
 ## use -DSHM_EXT to enable the shm
 CC=g++
 LDFLAGS=-lX11 -lXt -lXext -lXmu -lm
-CXXFLAGS=-O3 -DSHM_EXT
+CXXFLAGS=-O3
 
 TARGET_EXEC ?= a.out
 

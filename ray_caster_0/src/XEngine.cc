@@ -1,4 +1,4 @@
-#include "XEngine.h"
+#include "../src/XEngine.h"
 
 #include <cstdlib>
 #include <fstream>
@@ -6,7 +6,7 @@
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
 
-#include "XTextureLoaderPPM.h"
+#include "../src/XTextureLoaderPPM.h"
 
 XEngine::XEngine(int xsize, int ysize, XScreenRgbInfo *scr_info)
 {

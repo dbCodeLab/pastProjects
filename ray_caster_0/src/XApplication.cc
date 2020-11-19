@@ -1,4 +1,5 @@
-#include "XApplication.h"
+#include "../src/XApplication.h"
+
 # include <sys/ipc.h>
 # include <sys/shm.h>
 #include <iostream>
@@ -53,7 +54,7 @@ void XApplication::create_window()
 #ifdef SHM_EXT
     cout << "shm" << endl;
     init_shm_ximg();
-    screen.buffer = reinterpret_cast<unsigned char *>(screen.ximg->data);    
+    screen.buffer = reinterpret_cast<unsigned char *>(screen.ximg->data);
   #else
 	cout << "no shm" << endl;
 	init_ximg();
@@ -101,7 +102,7 @@ void XApplication::free_ximg()
 
 #ifdef SHM_EXT
 void XApplication::init_shm_ximg() {
-  
+
   screen.ximg = XShmCreateImage(dpy, vis, screen.depth, ZPixmap, 0, &shminfo, screen_xsize, screen_ysize);
 
   shminfo.shmid = shmget(IPC_PRIVATE, screen.ximg->bytes_per_line*screen.ximg->height,
@@ -124,7 +125,7 @@ void XApplication::init_shm_ximg() {
       XShmAttach(dpy, &shminfo);
     }
   }
-  
+
 }
 #endif
 
@@ -188,7 +189,7 @@ void XApplication::event_loop()
   #else
 		XPutImage(dpy, w, gc, screen.ximg, 0, 0, 0, 0, screen_xsize,
 				screen_ysize);
-#endif          
+#endif
 
 		XSync(dpy, False);
 	}

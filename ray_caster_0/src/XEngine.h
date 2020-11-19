@@ -1,12 +1,11 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include "XScreenRgbInfo.h"
-#include "XRasterizer.h"
-#include "XTextureLoader.h"
-
 #include <cmath>
 #include <iostream>
+#include "../src/XRasterizer.h"
+#include "../src/XScreenRgbInfo.h"
+#include "../src/XTextureLoader.h"
 
 class XEngine
 {

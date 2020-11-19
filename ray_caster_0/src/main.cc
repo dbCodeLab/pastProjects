@@ -1,13 +1,14 @@
-#include "XApplication.h"
+#include "../src/XApplication.h"
 
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
 
-int main() {
+int main()
+{
 
-  XApplication xapp("ray caster 0", SCREEN_WIDTH, SCREEN_HEIGHT);
-  
-  xapp.execute();
-  
-  return 0;
+	XApplication xapp("ray caster 0", SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	xapp.execute();
+
+	return 0;
 }

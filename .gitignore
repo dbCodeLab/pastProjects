@@ -1,9 +1,9 @@
 *~
 *.o
-#executables (all called main?)
-main
-#asm files
 *.s
+build/
+#asm files
+
 
 #eclipse stuff
 .project
