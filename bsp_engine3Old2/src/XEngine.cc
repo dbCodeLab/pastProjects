@@ -64,25 +64,25 @@ void XEngine::setup_data() {
 
 void XEngine::setup_textures() {
     
-  tex_loader->load("wall0.ppm");
+  tex_loader->load("res/wall0.ppm");
   wall_tex[0] = new Texture(tex_loader->data, tex_loader->width, tex_loader->height, NUM_LIGHT_LEVELS, scr_info);
   
-  tex_loader->load("wall0.ppm");
+  tex_loader->load("res/wall0.ppm");
   wall_tex[1] = new Texture(tex_loader->data, tex_loader->width, tex_loader->height, NUM_LIGHT_LEVELS, scr_info);
   
-  tex_loader->load("floor0.ppm");
+  tex_loader->load("res/floor0.ppm");
   floor_tex[0] = new Texture(tex_loader->data, tex_loader->width, tex_loader->height, NUM_LIGHT_LEVELS, scr_info);
   
-  tex_loader->load("floor1.ppm");
+  tex_loader->load("res/floor1.ppm");
   floor_tex[1] = new Texture(tex_loader->data, tex_loader->width, tex_loader->height, NUM_LIGHT_LEVELS, scr_info);
   
-  tex_loader->load("ceiling0.ppm");
+  tex_loader->load("res/ceiling0.ppm");
   ceiling_tex[0] = new Texture(tex_loader->data, tex_loader->width, tex_loader->height, NUM_LIGHT_LEVELS, scr_info);
  
-  tex_loader->load("ceiling1.ppm");
+  tex_loader->load("res/ceiling1.ppm");
   ceiling_tex[1] = new Texture(tex_loader->data, tex_loader->width, tex_loader->height, MAX_LIGHT_LEVELS, scr_info);
   
-  tex_loader->load("ceiling2.ppm");
+  tex_loader->load("res/ceiling2.ppm");
   ceiling_tex[2] = new Texture(tex_loader->data, tex_loader->width, tex_loader->height, MAX_LIGHT_LEVELS, scr_info);
 }
 
