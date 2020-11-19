@@ -1,6 +1,6 @@
 LD=g++
-LDFLAGS=-lX11 -lXt -lXext -lXmu -lm -O3
-CPPFLAGS=-O3
+LDFLAGS=-lX11 -lXt -lXext -lXmu -lm
+CPPFLAGS=-std=c++03 -O3
 # -funroll-loops
 
 main: main.o XApplication.o XScreenRgbInfo.o XEngine.o XRasterizer.o XTextureLoaderPPM.o Plane.o BspTree.o
