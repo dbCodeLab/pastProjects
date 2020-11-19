@@ -27,7 +27,7 @@ public:
   }
   
   void load_ppm() {
-    tex_loader->load("wall.ppm");
+    tex_loader->load("res/wall.ppm");
   }
   
   void test() {
