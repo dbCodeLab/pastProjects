@@ -1,2 +1,4 @@
 *~
 *.o
+#executables (all called main?)
+main
