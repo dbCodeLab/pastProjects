@@ -12,7 +12,7 @@ public:
   Position evaluate_position(const Wall& wall);
   bool split(const Wall& wall, Wall& wall1, Wall& wall2);
   
-  static const double eps = 0.001f;
+  static const double EPS;
   double a, b, c;
 };
 

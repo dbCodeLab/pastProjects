@@ -125,7 +125,7 @@ void XEngine::setup_data() {
 
 void XEngine::setup_textures() {
   
-  tex_loader->load("xwall1.ppm");
+  tex_loader->load("res/xwall1.ppm");
   wall_tex = new Texture(tex_loader->data, tex_loader->width, tex_loader->height);
 }
 
