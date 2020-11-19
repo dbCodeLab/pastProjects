@@ -8,6 +8,8 @@ TARGET_EXEC ?= a.out
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src
 
+TARGET = $(BUILD_DIR)/$(TARGET_EXEC)
+
 SRCS := $(shell find $(SRC_DIRS) -name *.cc -or -name *.c -or -name *.s)
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
@@ -17,9 +19,9 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 CPPFLAGS ?= $(INC_FLAGS) -MMD -MP
 
-all: $(BUILD_DIR)/$(TARGET_EXEC)
+all: $(TARGET)
 
-$(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
+$(TARGET): $(OBJS)
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
 
 # assembly
@@ -42,8 +44,8 @@ $(BUILD_DIR)/%.cc.o: %.cc
 clean:
 	$(RM) -r $(BUILD_DIR)
 
-run: $(BUILD_DIR)/$(TARGET_EXEC)
-	./$(BUILD_DIR)/$(TARGET_EXEC)
+run: $(TARGET)
+	./$(TARGET) $(ARGS)
 
 -include $(DEPS)
 

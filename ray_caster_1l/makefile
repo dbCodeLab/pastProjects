@@ -1,30 +1,53 @@
-LD=g++
-LDFLAGS=-lX11 -lXt -lXext -lXmu -lm -O3
-CPPFLAGS=-O3
-# -funroll-loops
+## use -DSHM_EXT to enable the shm
+CC=g++
+LDFLAGS=-lX11 -lXt -lXext -lXmu -lm
+CXXFLAGS=-O3
 
-main: main.o XApplication.o XScreenRgbInfo.o XEngine.o XRasterizer.o XTextureLoaderPPM.o
-	$(LD) $^ -o $@ $(LDFLAGS)
+TARGET_EXEC ?= a.out
 
-main.o: main.cc
-	$(LD) -c $^ $(CPPFLAGS)
+BUILD_DIR ?= ./build
+SRC_DIRS ?= ./src
 
-XApplication.o: XApplication.cc
-	$(LD) -c $^ $(LDFLAGS) $(CPPFLAGS)
+TARGET = $(BUILD_DIR)/$(TARGET_EXEC)
 
-# metti -DSHM_EXT nelle opzioni di compilazione di Xapp per usare l'shm
+SRCS := $(shell find $(SRC_DIRS) -name *.cc -or -name *.c -or -name *.s)
+OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
+DEPS := $(OBJS:.o=.d)
 
-XScreenRgbInfo.o: XScreenRgbInfo.cc
-	$(LD) -c $^ $(LDFLAGS) $(CPPFLAGS)
+INC_DIRS := $(shell find $(SRC_DIRS) -type d)
+INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-XEngine.o: XEngine.cc
-	$(LD) -c $^ $(CPPFLAGS)
+CPPFLAGS ?= $(INC_FLAGS) -MMD -MP
 
-XRasterizer.o: XRasterizer.cc
-	$(LD) -c $^ $(CPPFLAGS)
+all: $(TARGET)
 
-XTextureLoaderPPM.o: XTextureLoaderPPM.cc
-	$(LD) -c $^ $(CPPFLAGS)
+$(TARGET): $(OBJS)
+	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+
+# assembly
+#$(BUILD_DIR)/%.s.o: %.s
+#	$(MKDIR_P) $(dir $@)
+#	$(AS) $(ASFLAGS) -c $< -o $@
+
+## c source
+#$(BUILD_DIR)/%.c.o: %.c
+#	$(MKDIR_P) $(dir $@)
+#	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+
+# c++ source
+$(BUILD_DIR)/%.cc.o: %.cc
+	$(MKDIR_P) $(dir $@)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
+.PHONY: clean run
 
 clean:
-	rm main main.o XApplication.o XScreenRgbInfo.o XEngine.o XRasterizer.o XTextureLoaderPPM.o
+	$(RM) -r $(BUILD_DIR)
+
+run: $(TARGET)
+	./$(TARGET) $(ARGS)
+
+-include $(DEPS)
+
+MKDIR_P ?= mkdir -p
+
