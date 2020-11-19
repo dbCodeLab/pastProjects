@@ -207,7 +207,7 @@ void XEngine::gen_light_textures(unsigned int ***textures_array, int num_texture
   char tex_file_name[200];
     
   for (int i=0; i!=num_textures; ++i) {
-    sprintf(tex_file_name,"%s%d.ppm",name_texture,(i+1));
+    sprintf(tex_file_name,"res/%s%d.ppm",name_texture,(i+1));
     tex_loader->load(tex_file_name);
     unsigned int *tex_ptr = reinterpret_cast<unsigned int*>(tex_loader->data);
     textures_array[i] = new unsigned int *[light_distance_levels];
