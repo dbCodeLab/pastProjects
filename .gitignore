@@ -4,3 +4,8 @@
 main
 #asm files
 *.s
+
+#eclipse stuff
+.project
+.cproject
+.settings
