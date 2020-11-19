@@ -2,3 +2,5 @@
 *.o
 #executables (all called main?)
 main
+#asm files
+*.s
