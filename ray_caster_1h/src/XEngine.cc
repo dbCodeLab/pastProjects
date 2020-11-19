@@ -132,11 +132,11 @@ void XEngine::setup_screen_data() {
 void XEngine::setup_bitmaps() {
   tex_width = TEXTURE_WIDTH;
   tex_height = TEXTURE_HEIGHT;
-  tex_loader->load("wall.ppm");    
+  tex_loader->load("res/wall.ppm");    
   tex_wall = reinterpret_cast<unsigned int*>(tex_loader->data);
-  tex_loader->load("floor.ppm");
+  tex_loader->load("res/floor.ppm");
   tex_floor = reinterpret_cast<unsigned int*>(tex_loader->data);
-  tex_loader->load("ceiling.ppm");
+  tex_loader->load("res/ceiling.ppm");
   tex_ceiling = reinterpret_cast<unsigned int*>(tex_loader->data);
 }
 
