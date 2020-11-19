@@ -1,0 +1,93 @@
+# ==== Begin prologue boilerplate.
+all : # The canonical default target.
+BUILD := debug
+build_dir := ${CURDIR}/${BUILD}
+exes := # Executables to build.
+# ==== End prologue boilerplate.
+
+# ==== Begin define executable othello.
+exes += othello
+objects.othello = main.o game.o Myothello.o space.o
+-include ${objects.othello:%.o=${build_dir}/%.d} # Include auto-generated dependencies.
+# ==== End define executable othello.
+
+# ==== Begin define another executable.
+# ... as for othello
+# ==== End define another executable.
+
+# ==== Begin rest of boilerplate.
+SHELL := /bin/bash
+COMPILER=gcc
+
+CXX.gcc := /bin/g++
+CC.gcc := /bin/gcc
+LD.gcc := /bin/g++
+AR.gcc := /bin/ar
+
+CXX.clang := /bin/clang++
+CC.clang := /bin/clang
+LD.clang := /bin/clang++
+AR.clang := /bin/ar
+
+CXX := ${CXX.${COMPILER}}
+CC := ${CC.${COMPILER}}
+LD := ${LD.${COMPILER}}
+AR := ${AR.${COMPILER}}
+
+CXXFLAGS.gcc.debug := -Og -fstack-protector-all
+CXXFLAGS.gcc.release := -O3 -march=native -DNDEBUG
+CXXFLAGS.gcc := -pthread -std=gnu++14 -march=native -W{all,extra,error} -g -fmessage-length=0 ${CXXFLAGS.gcc.${BUILD}}
+
+CXXFLAGS.clang.debug := -O0 -fstack-protector-all
+CXXFLAGS.clang.release := -O3 -march=native -DNDEBUG
+CXXFLAGS.clang := -pthread -std=gnu++14 -march=native -W{all,extra,error} -g -fmessage-length=0 ${CXXFLAGS.clang.${BUILD}}
+
+CXXFLAGS := ${CXXFLAGS.${COMPILER}}
+CFLAGS := ${CFLAGS.${COMPILER}}
+
+LDFLAGS.debug :=
+LDFLAGS.release :=
+LDFLAGS := -fuse-ld=gold -pthread -g ${LDFLAGS.${BUILD}}
+LDLIBS := -ldl
+
+COMPILE.CXX = ${CXX} -c -o $@ ${CPPFLAGS} -MD -MP ${CXXFLAGS} $(abspath $<)
+PREPROCESS.CXX = ${CXX} -E -o $@ ${CPPFLAGS} ${CXXFLAGS} $(abspath $<)
+COMPILE.C = ${CC} -c -o $@ ${CPPFLAGS} -MD -MP ${CFLAGS} $(abspath $<)
+LINK.EXE = ${LD} -o $@ $(LDFLAGS) $(filter-out Makefile,$^) $(LDLIBS)
+LINK.SO = ${LD} -shared -o $@ $(LDFLAGS) $(filter-out Makefile,$^) $(LDLIBS)
+LINK.A = ${AR} rsc $@ $(filter-out Makefile,$^)
+
+all : ${exes:%=${build_dir}/%} # Build all exectuables.
+
+.SECONDEXPANSION:
+# Build an executable.
+${exes:%=${build_dir}/%} : ${build_dir}/% : $$(addprefix ${build_dir}/,$${objects.$$*}) Makefile | ${build_dir}
+    $(strip ${LINK.EXE})
+
+# Run an executable. E.g. make run_othello
+${exes:%=run_%} : run_% : ${build_dir}/%
+    @echo "---- running $< ----"
+    /usr/bin/time --verbose $<
+
+# Create the build directory on demand.
+${build_dir} :
+    mkdir $@
+
+# Compile a C++ source into .o.
+# Most importantly, generate header dependencies.
+${build_dir}/%.o : %.cc Makefile | ${build_dir}
+    $(strip ${COMPILE.CXX})
+
+# Compile a C source into .o.
+# Most importantly, generate header dependencies.
+${build_dir}/%.o : %.c Makefile | ${build_dir}
+    $(strip ${COMPILE.C})
+
+clean :
+    rm -rf ${build_dir}
+
+.PHONY : clean all run_%
+
+# ==== End rest of boilerplate.
+
+
