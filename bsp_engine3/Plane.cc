@@ -6,6 +6,7 @@
 using std::cout;
 using std::endl;
 
+const double Plane::EPS = 0.0001;
 
 Plane::Plane(const Wall& wall) {
   double x1 = wall.points[0]->x;

@@ -1,6 +1,6 @@
 LD=g++
-LDFLAGS=-lX11 -lXt -lXext -lXmu -lm -O3
-CPPFLAGS=-O3
+LDFLAGS=-lX11 -lXt -lXext -lXmu -lm
+CPPFLAGS=-std=c++03 -O3
 # -funroll-loops
 # -fprofile-arcs -ftest-coverage
 

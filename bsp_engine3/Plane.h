@@ -20,15 +20,15 @@ public:
 
   Position evaluate_position(const Vector2d& point) {
     double val = evaluate(point);  
-    if (val > eps)
+    if (val > EPS)
       return IN_FRONT;
-    else if (val < -eps)
+    else if (val < -EPS)
       return IN_BACK;
     else
       return SPANNING;
   }
   
-  static const double eps = 0.0001f;
+  static const double EPS;
   double a, b, c;
   double idd;
 };
