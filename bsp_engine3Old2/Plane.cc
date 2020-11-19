@@ -4,6 +4,8 @@
 using std::cout;
 using std::endl;
 
+const double Plane::EPS = 0.0001;
+
 Plane::Plane(const Wall& wall) {
   double x1 = wall.points[0]->x;
   double y1 = wall.points[0]->y;
@@ -20,9 +22,9 @@ Plane::Position Plane::evaluate_position(const Vector2d& point) {
   
   double val = a * point.x + b * point.y + c;
   
-  if (val > eps)
+  if (val > EPS)
     return IN_FRONT;
-  else if (val < -eps)
+  else if (val < -EPS)
     return IN_BACK;
   else
     return SPANNING;

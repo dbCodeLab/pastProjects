@@ -1,5 +1,5 @@
 LD=g++
-LDFLAGS=-lX11 -lXt -lXext -lXmu -lm -O3
+LDFLAGS=-lX11 -lXt -lXext -lXmu -lm
 CPPFLAGS=-O3
 # -funroll-loops
 
